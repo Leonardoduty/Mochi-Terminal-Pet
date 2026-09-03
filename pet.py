@@ -84,6 +84,8 @@ client = OpenAI(
     api_key=os.getenv("NVIDIA_API_KEY")
 )
 
+
+
 achievements = {
     "first_meal": False,
     "first_play": False,
@@ -849,6 +851,9 @@ def show_animation_frame(frame):
         print(f"{pet_line:<32}{status_line}")
 
 def play_animation(frames, delay=0.15):
+    if not animations_enabled:
+        return
+
     for frame in frames:
         os.system("clear")
         show_animation_frame(frame)
@@ -888,8 +893,8 @@ def check_level_up():
 def check_evolution():
     global evo_stage
 
-    if level >= 5 and evolution_stage == 1:
-        evolution_stage = 2
+    if level >= 5 and evo_stage == 1:
+        evo_stage = 2
 
         print("""
 ++++++++++++++++++++++++++++
@@ -903,8 +908,8 @@ def check_evolution():
 ++++++++++++++++++++++++++++
 """)
 
-    elif level >= 15 and evolution_stage == 2:
-        evolution_stage = 3
+    elif level >= 15 and evo_stage == 2:
+        evo_stage = 3
 
         print("""
 ++++++++++++++++++++++++++++
@@ -918,8 +923,8 @@ def check_evolution():
 ++++++++++++++++++++++++++++
 """)
 
-    elif level >= 25 and evolution_stage == 3:
-        evolution_stage = 4
+    elif level >= 25 and evo_stage == 3:
+        evo_stage = 4
 
         print("""
 ++++++++++++++++++++++++++++
@@ -1123,7 +1128,12 @@ def save_game():
         "mood": mood,
         "last_update": last_update,
         "evo_stage": evo_stage,
-        "theme" : theme
+        "theme" : theme,
+        "meals": meals,
+        "plays": plays,
+        "sleeps": sleeps,
+        "gifts": gifts,
+        "achievements": achievements
     }
 
     with open("save.json", "w") as file:
@@ -1341,7 +1351,7 @@ Return ONLY valid JSON in this exact format:
         print(f"[Memory error: {e}]")
 
 def load_game():
-    global name, level, xp, hunger, happiness, energy, mood, last_update, evo_stage, theme
+    global name, level, xp, hunger, happiness, energy, mood, last_update, evo_stage, theme, meals, plays, sleeps, gifts, achievements
 
     try:
         with open("save.json", "r") as file:
@@ -1357,6 +1367,11 @@ def load_game():
         last_update = data.get("last_update", last_update)
         evo_stage = data.get("evo_stage", evo_stage)
         theme = data.get("theme", theme)
+        achievements = data.get("achievements", achievements)
+        meals = data.get("meals", meals)
+        plays = data.get("plays", plays)
+        sleeps = data.get("sleeps", sleeps)
+        gifts = data.get("gifts", gifts)
 
     except FileNotFoundError:
         pass

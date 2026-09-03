@@ -1,3 +1,5 @@
-.venv/
-save.json
 .env
+save.json
+memory.json
+.venv/
+__pycache__/
