@@ -9,6 +9,17 @@ import json
 from openai import OpenAI
 from dotenv import load_dotenv
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+if hasattr(sys.stdin, "reconfigure"):
+    try:
+        sys.stdin.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 name = "Mochi"
 
 level = 1
@@ -41,6 +52,9 @@ themes = {
         "arrow": ">",
     }
 }
+def clear_screen():
+    os.system("cls" if os.name == "nt" else "clear")
+
 def get_theme():
     return themes.get(theme, themes["classic"])
 
@@ -48,7 +62,7 @@ def theme_menu():
     global theme
 
     while True:
-        os.system("clear")
+        clear_screen()
 
         print("""
 ++++++++++++++++++++++++++++
@@ -79,10 +93,96 @@ last_update = time.time()
 
 load_dotenv()
 
-client = OpenAI(
-    base_url="https://integrate.api.nvidia.com/v1",
-    api_key=os.getenv("NVIDIA_API_KEY")
-)
+PROVIDERS = {
+    "groq": {
+        "name": "Groq Cloud",
+        "base_url": "https://api.groq.com/openai/v1",
+        "env_key": "GROQ_API_KEY",
+        "default_model": "openai/gpt-oss-120b",
+        "model_env": "GROQ_MODEL",
+        "extra_body": None,
+    },
+    "openrouter": {
+        "name": "OpenRouter",
+        "base_url": "https://openrouter.ai/api/v1",
+        "env_key": "OPENROUTER_API_KEY",
+        "default_model": "openrouter/free",
+        "model_env": "OPENROUTER_MODEL",
+        "extra_body": None,
+    },
+    "nvidia": {
+        "name": "NVIDIA NIM",
+        "base_url": "https://integrate.api.nvidia.com/v1",
+        "env_key": "NVIDIA_API_KEY",
+        "default_model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+        "model_env": "NVIDIA_MODEL",
+        "extra_body": {
+            "chat_template_kwargs": {
+                "enable_thinking": False
+            }
+        },
+    },
+    "openai": {
+        "name": "OpenAI",
+        "base_url": "https://api.openai.com/v1",
+        "env_key": "OPENAI_API_KEY",
+        "default_model": "gpt-4o-mini",
+        "model_env": "OPENAI_MODEL",
+        "extra_body": None,
+    },
+}
+
+def detect_default_provider():
+    env_provider = os.getenv("AI_PROVIDER")
+    if env_provider and env_provider.lower() in PROVIDERS:
+        return env_provider.lower()
+    for prov, info in PROVIDERS.items():
+        if os.getenv(info["env_key"]):
+            return prov
+    return "groq"
+
+current_provider = detect_default_provider()
+
+def get_provider_config():
+    prov = current_provider.lower()
+    config = PROVIDERS.get(prov, PROVIDERS["groq"])
+    api_key = os.getenv(config["env_key"])
+    model = os.getenv("AI_MODEL") or os.getenv(config["model_env"]) or config["default_model"]
+    return config, api_key, model
+
+def get_ai_client():
+    config, api_key, _ = get_provider_config()
+    default_headers = {}
+    if current_provider == "openrouter":
+        default_headers = {
+            "HTTP-Referer": "https://github.com/Leonardoduty/Mochi-Terminal-Pet",
+            "X-Title": "Mochi Terminal Pet",
+        }
+    return OpenAI(
+        base_url=config["base_url"],
+        api_key=api_key or "missing_key",
+        default_headers=default_headers if default_headers else None,
+    )
+
+def call_ai(messages, temperature=0.7, max_tokens=150):
+    config, api_key, model = get_provider_config()
+    if not api_key:
+        raise ValueError(
+            f"Missing API key for {config['name']}! Please set {config['env_key']} in your .env file."
+        )
+
+    client = get_ai_client()
+    kwargs = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+    if config.get("extra_body"):
+        kwargs["extra_body"] = config["extra_body"]
+
+    response = client.chat.completions.create(**kwargs)
+    return response.choices[0].message.content
 
 
 
@@ -855,7 +955,7 @@ def play_animation(frames, delay=0.15):
         return
 
     for frame in frames:
-        os.system("clear")
+        clear_screen()
         show_animation_frame(frame)
         time.sleep(delay)
 
@@ -1040,7 +1140,7 @@ def mochi_thought():
 def activities():
     while True:
         check_level_up()
-        os.system("clear")
+        clear_screen()
         get_mood()
         show_screen()
         act = input("""What activity do you want to do?
@@ -1062,11 +1162,40 @@ def activities():
         if act == "5":
             return  
 
-def settings_menu():
-    global animations_enabled, thoughts_enabled, hunger_decay_enabled
+def provider_menu():
+    global current_provider
 
     while True:
-        os.system("clear")
+        clear_screen()
+
+        print("""
+++++++++++++++++++++++++++++
+        AI PROVIDER
+++++++++++++++++++++++++++++
+""")
+        options = list(PROVIDERS.keys())
+        for idx, key in enumerate(options, 1):
+            info = PROVIDERS[key]
+            active = " [ACTIVE]" if current_provider == key else ""
+            key_status = " (Key Found)" if os.getenv(info["env_key"]) else " (No Key in .env)"
+            print(f"{idx}> {info['name']:<14}{active}{key_status}")
+
+        print(f"{len(options) + 1}> Back")
+
+        choice = input("\nChoose a provider: ")
+
+        if choice.isdigit():
+            idx = int(choice)
+            if 1 <= idx <= len(options):
+                current_provider = options[idx - 1]
+            elif idx == len(options) + 1:
+                return
+
+def settings_menu():
+    global animations_enabled, thoughts_enabled, hunger_decay_enabled, current_provider
+
+    while True:
+        clear_screen()
 
         print("""
 ++++++++++++++++++++++++++++
@@ -1077,8 +1206,9 @@ def settings_menu():
         print(f"1> Animations    : {'ON' if animations_enabled else 'OFF'}")
         print(f"2> Thoughts      : {'ON' if thoughts_enabled else 'OFF'}")
         print(f"3> Hunger Decay  : {'ON' if hunger_decay_enabled else 'OFF'}")
-        print("4> Themes")
-        print("5> Back")
+        print(f"4> AI Provider   : {PROVIDERS.get(current_provider, {}).get('name', current_provider)}")
+        print("5> Themes")
+        print("6> Back")
 
         choice = input("\n> ")
 
@@ -1092,13 +1222,16 @@ def settings_menu():
             hunger_decay_enabled = not hunger_decay_enabled
 
         elif choice == "4":
-            theme_menu()
+            provider_menu()
 
         elif choice == "5":
+            theme_menu()
+
+        elif choice == "6":
             return
 
 def show_achievements():
-    os.system("clear")
+    clear_screen()
 
     print("""
 ++++++++++++++++++++++++++++
@@ -1129,6 +1262,7 @@ def save_game():
         "last_update": last_update,
         "evo_stage": evo_stage,
         "theme" : theme,
+        "provider": current_provider,
         "meals": meals,
         "plays": plays,
         "sleeps": sleeps,
@@ -1164,7 +1298,7 @@ memory = load_memory()
 memory_text = json.dumps(memory, indent=2)
 
 def chat_mochi():
-    os.system("clear")
+    clear_screen()
 
     print("""++++++++++++++++++++++++++++
         Chat With Mochi
@@ -1248,19 +1382,7 @@ Do not mention the memory system.
         })
 
         try:
-            response = client.chat.completions.create(
-                model="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
-                messages=conversation,
-                temperature=0.8,
-                max_tokens=150,
-                extra_body={
-                    "chat_template_kwargs": {
-                        "enable_thinking": False
-                    }
-                }
-            )
-
-            reply = response.choices[0].message.content
+            reply = call_ai(conversation, temperature=0.8, max_tokens=150)
 
             print(f"Mochi: {reply}")
 
@@ -1320,24 +1442,12 @@ Return ONLY valid JSON in this exact format:
 """
 
     try:
-        response = client.chat.completions.create(
-            model="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
+        result = call_ai(
+            [{"role": "user", "content": prompt}],
             temperature=0.1,
-            max_tokens=300,
-            extra_body={
-                "chat_template_kwargs": {
-                    "enable_thinking": False
-                }
-            }
+            max_tokens=300
         )
-
-        result = response.choices[0].message.content.strip()
+        result = result.strip()
 
         result = result.replace("```json", "")
         result = result.replace("```", "")
@@ -1351,7 +1461,7 @@ Return ONLY valid JSON in this exact format:
         print(f"[Memory error: {e}]")
 
 def load_game():
-    global name, level, xp, hunger, happiness, energy, mood, last_update, evo_stage, theme, meals, plays, sleeps, gifts, achievements
+    global name, level, xp, hunger, happiness, energy, mood, last_update, evo_stage, theme, meals, plays, sleeps, gifts, achievements, current_provider
 
     try:
         with open("save.json", "r") as file:
@@ -1367,6 +1477,7 @@ def load_game():
         last_update = data.get("last_update", last_update)
         evo_stage = data.get("evo_stage", evo_stage)
         theme = data.get("theme", theme)
+        current_provider = data.get("provider", current_provider)
         achievements = data.get("achievements", achievements)
         meals = data.get("meals", meals)
         plays = data.get("plays", plays)
@@ -1401,7 +1512,7 @@ You were away for:
     input("Press Enter to Continue")
 
 def mochi_profile():
-    os.system("clear")
+    clear_screen()
 
     print("""
 ++++++++++++++++++++++++++++
@@ -1417,6 +1528,7 @@ def mochi_profile():
     print(f"Happiness     : {happiness}/100")
     print(f"Energy        : {energy}/100")
     print(f"Evolution     : Stage {evo_stage}")
+    print(f"AI Provider   : {PROVIDERS.get(current_provider, {}).get('name', current_provider)}")
 
     print("""
 ----------------------------
@@ -1435,31 +1547,34 @@ def mochi_profile():
 
     input("Press Enter to Continue")
 
-while True:
-    current_t = time.time()
-    elapsed = current_t - last_update
+def main():
+    global hunger, last_update
 
-    check_level_up()
-    os.system("clear")
+    while True:
+        current_t = time.time()
+        elapsed = current_t - last_update
 
-    if elapsed >= 5:
-      if hunger_decay_enabled:
-          hunger_loss = random.randint(1,3)
-          hunger = max(0, hunger - hunger_loss)
+        check_level_up()
+        clear_screen()
 
-      last_update = current_t
+        if elapsed >= 5:
+            if hunger_decay_enabled:
+                hunger_loss = random.randint(1, 3)
+                hunger = max(0, hunger - hunger_loss)
 
-      if thoughts_enabled:
-          mochi_thought()
+            last_update = current_t
 
-    get_mood()
-    show_screen()
-    if thoughts_enabled:
-      mochi_thought()
+            if thoughts_enabled:
+                mochi_thought()
 
-    current_theme = get_theme()
+        get_mood()
+        show_screen()
+        if thoughts_enabled:
+            mochi_thought()
 
-    print(f"""
+        current_theme = get_theme()
+
+        print(f"""
 {current_theme["title"] * 28}
           Mochi
 {current_theme["title"] * 28}
@@ -1474,26 +1589,29 @@ while True:
 {current_theme["title"] * 28}
 """)
 
-    task = input("> ")
+        task = input("> ")
 
-    if task == "1":
-        activities()
+        if task == "1":
+            activities()
 
-    if task == "2":
-        chat_mochi()
+        if task == "2":
+            chat_mochi()
 
-    if task == "3":
-        show_achievements()
+        if task == "3":
+            show_achievements()
 
-    if task == "4":
-        settings_menu()
+        if task == "4":
+            settings_menu()
 
-    if task == "5":
-        mochi_profile()
+        if task == "5":
+            mochi_profile()
 
-    if task == "6":
-        save_game()
-        sys.exit()
+        if task == "6":
+            save_game()
+            sys.exit()
+
+if __name__ == "__main__":
+    main()
 
 
 
