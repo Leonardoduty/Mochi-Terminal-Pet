@@ -8,9 +8,13 @@ Link: https://github.com/Leonardoduty/Mochi-Terminal-Pet
 # Quick Start 
 To quick start:-
 a. Install python 3.12
-b. Install openai and python-dotenv
-c. Get a API key from Nvidia 
-d. Paste your API key in the .env file
+b. Install openai and python-dotenv (`pip install openai python-dotenv`)
+c. Get a free API key from your preferred provider:
+   - **Groq Cloud** (Fastest inference, free): https://console.groq.com
+   - **OpenRouter** (Aggregated free models): https://openrouter.ai
+   - **NVIDIA NIM**: https://build.nvidia.com
+   - **OpenAI**: https://platform.openai.com
+d. Copy `.env.example` to `.env` and paste your API key (e.g. `GROQ_API_KEY=...`)
 
 # Features
 1. Core Pet system
@@ -34,10 +38,10 @@ d. Paste your API key in the .env file
 19. Welcome back system
 
 # How to run it locally
-a. Create a virtual environment of python 3.12(python3 -m venv .venv)
-b. install all the dependencies(pip install openai python-dotenv)
-c. create env Put your Nvidia API key in the env
-d. Run Mochi (python pet.py)
+a. Create a virtual environment of python 3.12 (`python3 -m venv .venv`)
+b. Install all the dependencies (`pip install openai python-dotenv`)
+c. Copy `.env.example` to `.env` and put your API key in `.env` (Groq, OpenRouter, NVIDIA, or OpenAI)
+d. Run Mochi (`python pet.py`)
 
 # How it Works
 Mochi runs with the help of multpile dependencies the core technology behind it is the communication of ai for chatting and various loops the main system was therefore built on python. The secondary features are furthere introduced with various constraints. Multiple ASCII features were also added to it.
