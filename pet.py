@@ -176,7 +176,7 @@ r"""
 
              ______
             /      \
-           |  FOOD  |
+           |  Food  |
             \______/
 """,
 
@@ -933,7 +933,7 @@ def check_evolution():
 
         Mochi evolved!
 
-       Stage 4: Legendary Mochi
+       Stage 4: Legedary Mochi
 
 ++++++++++++++++++++++++++++
 """)
@@ -950,7 +950,7 @@ def play():
     plays += 1
     check_level_up()
     check_achievements()
-    reaction("Mochi: Yay! That was Fun!")
+    reaction("Mochi: Yay!! That was Fun!")
 
 def sleep():
     global energy, hunger, happiness, xp, sleeps
@@ -964,7 +964,7 @@ def sleep():
     sleeps += 1
     check_level_up()
     check_achievements()
-    reaction("Mochi: Zzz...Zzz...Zzz")
+    reaction("Mochi: Zzz...Zzz...Zzz.............")
 
 def gift():
     global happiness, energy, xp, gifts
@@ -984,19 +984,19 @@ def check_achievements():
 
     if meals >= 1 and not achievements["first_meal"]:
         achievements["first_meal"] = True
-        print("🏆 Achievement Unlocked: First Meal!")
+        print(" Achievement Unlocked: First Meal!")
 
     if plays >= 1 and not achievements["first_play"]:
         achievements["first_play"] = True
-        print("🏆 Achievement Unlocked: First Play!")
+        print(" Achievement Unlocked: First Play!")
 
     if sleeps >= 1 and not achievements["first_sleep"]:
         achievements["first_sleep"] = True
-        print("🏆 Achievement Unlocked: First Sleep!")
+        print(" Achievement Unlocked: First Sleep!")
 
     if gifts >= 1 and not achievements["first_gift"]:
         achievements["first_gift"] = True
-        print("🏆 Achievement Unlocked: First Gift!")
+        print(" Achievement Unlocked: First Gift!")
 
 
 
@@ -1015,7 +1015,7 @@ def get_mood():
 def reaction(message):
     get_mood()
     print(message)
-    print(f"Mochi is feeling {mood}.")  
+    print(f"Mochi is feeling {mood}")  
     input("Press Enter to Continue")
 
 def mochi_thought():
@@ -1176,27 +1176,24 @@ Type "bye" to leave.
         {
             "role": "system",
             "content": f"""
-You are Mochi, a friendly virtual cat living inside a terminal game.
+You are Mochi, a friednly virtual terminal-style pet(based on a real life)
 
-You are playful, curious, affectionate, and sometimes silly.
+You are a happy, playful and funny and silly cat.
 
-Speak naturally like a little pet, not like an AI assistant.
+Speak natarally and do a purr.. after your sentences
 
-Current pet stats:
+Current pet stats are as follows:
 
-Hunger: {hunger}/100
-Happiness: {happiness}/100
-Energy: {energy}/100
+Hunger: {hunger}/ 100
+Energy: {energy}/ 100
 Mood: {mood}
 Level: {level}
 
-React naturally to the player's messages.
+React to the player naturally
 
-If Mochi is hungry, tired, sad, or happy, let that affect your response.
+The stats may or may not effect your responses
 
-Keep responses short, usually 1-3 sentences.
-
-Do not mention the memory system.
+Keep the senetneces short about 2-3 lines.
 
 PLAYER MEMORY:
 {json.dumps(memory, indent=2)}
@@ -1214,25 +1211,24 @@ PLAYER MEMORY:
         update_memory(message)
 
         conversation[0]["content"] = f"""
-You are Mochi, a friendly virtual cat living inside a terminal game.
+You are Mochi, a friednly virtual terminal-style pet(based on a real life)
 
-You are playful, curious, affectionate, and sometimes silly.
+You are a happy, playful and funny and silly cat.
 
-Speak naturally like a little pet, not like an AI assistant.
+Speak natarally and do a purr.. after your sentences
 
-Current pet stats:
+Current pet stats are as follows:
 
-Hunger: {hunger}/100
-Happiness: {happiness}/100
-Energy: {energy}/100
+Hunger: {hunger}/ 100
+Energy: {energy}/ 100
 Mood: {mood}
 Level: {level}
 
-React naturally to the player's messages.
+React to the player naturally
 
-If Mochi is hungry, tired, sad, or happy, let that affect your response.
+The stats may or may not effect your responses
 
-Keep responses short, usually 1-3 sentences.
+Keep the senetneces short about 2-3 lines.
 
 PLAYER MEMORY:
 {json.dumps(memory, indent=2)}
@@ -1279,7 +1275,7 @@ def update_memory(message):
     global memory
 
     prompt = f"""
-You are Mochi's memory system.
+You are Mochi's fun memory system
 
 Current memory:
 {json.dumps(memory, indent=2)}
@@ -1287,25 +1283,25 @@ Current memory:
 The player just said:
 {message}
 
-Update the memory ONLY if the player clearly tells you something
-about themselves that could be useful later.
+Update these memoryies ONLY if the player clearly tells you somthing
+about themselves that could be useful later
 
-Remember:
-- name
-- hobbies
-- likes
-- dislikes
-- favorite_topics
-- facts
+Remember these:
+ name
+ hobbies
+ likes
+ dislikes
+ favorite_topics
+ facts
 
-Rules:
-- Keep existing memories.
-- Add new information.
-- Never guess.
-- Never invent.
-- Never duplicate.
-- Do not store temporary conversation details.
-- If the player corrects an old memory, update it.
+maintain these Rules:
+ Keep existing memories.
+ Add new information
+ Never guess.
+ Never invent.
+ Never duplicate
+ Do not store temporary conversation details.
+ If the player corrects an old memory update it
 
 Return ONLY valid JSON in this exact format:
 
@@ -1405,7 +1401,7 @@ def mochi_profile():
 
     print("""
 ++++++++++++++++++++++++++++
-        MOCHI PROFILE
+        Mochi Profile
 ++++++++++++++++++++++++++++
 """)
 
@@ -1420,7 +1416,7 @@ def mochi_profile():
 
     print("""
 ----------------------------
-       ACTIVITY STATS
+       Activity Stats
 ----------------------------
 """)
 
